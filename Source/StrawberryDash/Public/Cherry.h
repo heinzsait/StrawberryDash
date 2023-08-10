@@ -5,7 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Math/UnrealMathUtility.h"
+#include "Math/Vector.h"
+#include "Enemy.h"
+#include "Components/BoxComponent.h"
 #include "Cherry.generated.h"
 
 UCLASS()
@@ -16,10 +21,40 @@ class STRAWBERRYDASH_API ACherry : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ACherry();
-	AActor* FindTargets();
-	void LockOn();
+	void FireTarget();
+	void ProjectileUpdate();
 
-	UProjectileMovementComponent* projectile;
+	FVector targetLocation;
+	FVector midPoint;
+	FVector curvedPoint;
+	float projectileSpeed;
+	float minCurveRadius;
+	float maxCurveRadius;
+	float minCurvePointDistance;
+	float maxCurvePointDistance;
+	float minAngle;
+	float maxAngle;
+
+	bool pointsCalculated;
+
+	UStaticMeshComponent* mesh;
+
+	UFUNCTION()
+		void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	AActor* strawberry;
+
+	//UPROPERTY(VisibleAnywhere, Category = "Trigger Box")
+	//	UBoxComponent* Trigger;
+
+	//// declare overlap begin function
+	//UFUNCTION()
+	//	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	//// declare overlap end function
+	//UFUNCTION()
+	//	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 
 protected:
 	// Called when the game starts or when spawned

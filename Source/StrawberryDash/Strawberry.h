@@ -8,6 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Cherry.h"
 #include "Strawberry.generated.h"
 
 UCLASS()
@@ -53,6 +54,8 @@ public:
 	bool canWallDash;
 	UPROPERTY(EditAnywhere)
 	bool isDashing;
+
+	bool isMovementLocked;
 
 
 	UPROPERTY(BlueprintReadWrite)

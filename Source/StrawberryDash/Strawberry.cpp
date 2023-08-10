@@ -7,6 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Cherry.h"
 
 // Sets default values
 AStrawberry::AStrawberry()
@@ -28,6 +29,12 @@ void AStrawberry::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	WallDash();
 	fireTarget = GetFireTargetPosition(characterMeshComp, cameraComp);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, "target pos = " + fireTarget.ToString());
+		DrawDebugSphere(GetWorld(), fireTarget, 100, 12, FColor::Green, false, 0, 0U, 3);
+	}
 }
 
 // Called to bind functionality to input
@@ -73,12 +80,14 @@ void AStrawberry::Initialize(USceneComponent* _characterMeshComp, USceneComponen
 //Movement
 void AStrawberry::MoveForward(float Value)
 {
+	if (isMovementLocked) return;
 	FRotator rot = FRotator(0, GetControlRotation().Yaw, 0);
 	AddMovementInput(UKismetMathLibrary::GetForwardVector(rot), Value);
 }
 
 void AStrawberry::MoveRight(float Value)
 {
+	if (isMovementLocked) return;
 	FRotator rot = FRotator(0, GetControlRotation().Yaw, 0);
 	AddMovementInput(UKismetMathLibrary::GetRightVector(rot), Value);
 }
@@ -258,8 +267,22 @@ void AStrawberry::WallDash()
 					{
 						didWallSlideVelo = true;
 						charMovement->Velocity = FVector().ZeroVector;
+
+						isMovementLocked = true;
+						//charMovement->GravityScale = 0;
 					}
+					
 					charMovement->GravityScale = 0.25;
+
+					FTimerDelegate TimerDelegate1;
+					TimerDelegate1.BindLambda([&]
+					{
+						
+						isMovementLocked = false;
+					});
+
+					FTimerHandle TimerHandle1;
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle1, TimerDelegate1, 0.75, false);
 					
 					if (canWallDash)
 					{
@@ -335,7 +358,7 @@ FVector AStrawberry::GetFireTargetPosition(USceneComponent* charMesh, USceneComp
 	FHitResult hitresult;
 	FCollisionQueryParams queryParams;
 	
-	queryParams.AddIgnoredActor(playerChar);
+	queryParams.AddIgnoredActor(this);
 	bool ifHit = GetWorld()->LineTraceSingleByChannel
 	(
 		hitresult, startVector, endVector, ECollisionChannel::ECC_Camera, queryParams
@@ -344,13 +367,13 @@ FVector AStrawberry::GetFireTargetPosition(USceneComponent* charMesh, USceneComp
 	if (ifHit)
 	{
 		_fireTarget = hitresult.Location;
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("targeting: %s"), *hitresult.GetActor()->GetName()));
 	}
 	else
 	{
 		_fireTarget = hitresult.TraceEnd;
 	}
 
-	DrawDebugSphere(GetWorld(), _fireTarget, 100, 12, FColor::Green, false, 0, 0U, 3);
 	return _fireTarget;
 }
 
@@ -361,35 +384,18 @@ void AStrawberry::FireCherry(USceneComponent* cherry, FVector target)
 		cherryFired = true;
 		FActorSpawnParameters spawnParams;
 		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		AActor* cherrySpawned = GetWorld()->SpawnActor<AActor>(cherryActor,cherry->GetComponentTransform() , spawnParams);
-		//cherrySpawned->Getcompo
-		
+		ACherry* cherrySpawned = Cast<ACherry>(GetWorld()->SpawnActor<AActor>(cherryActor,cherry->GetComponentTransform() , spawnParams));
+
+		cherrySpawned->targetLocation = fireTarget;
+		cherrySpawned->FireTarget();
+		cherrySpawned->strawberry = this;
+
 		/*
-		UActorComponent* cherryMesh = cherrySpawned->GetComponentByClass(TSubclassOf<UStaticMeshComponent>());
-
-		if (cherryMesh != NULL)
+		if (GEngine)
 		{
-			bool bIsSceneComponent = cherryMesh->IsA<USceneComponent>();
-
-			if (GEngine)
-			{
-				if (bIsSceneComponent)
-					GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Yellow, TEXT("true"));
-				else
-					GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Yellow, TEXT("false"));
-			}
+			GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, "firing pos = " + fireTarget.ToString());
 		}
-		else
-		{
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Yellow, TEXT("null comp"));
-			}
-		}
-
-		*/
-		//cherryMesh->
-		//UKismetSystemLibrary::MoveComponentTo(cherryMesh, target, FRotator(), 0, 0, 0.2, false,EMoveComponentAction::Move, FLatentActionInfo());
+		*/		
 	}
 }
 
