@@ -24,10 +24,6 @@ EBTNodeResult::Type UBTTask_MoveToPosition::ExecuteTask(UBehaviorTreeComponent& 
 	//AIController->MoveTo(move);
 
 	auto moveResult = AIController->MoveToLocation(pos, -1, false, false);
-	if (moveResult == EPathFollowingRequestResult::Failed)
-	{
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Failed"));
-	}
 
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;

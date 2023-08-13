@@ -21,7 +21,7 @@ public:
 	AStrawberry();
 
 	UFUNCTION(BlueprintCallable)
-	void Initialize(USceneComponent* _characterMeshComp, USceneComponent* _cameraComp, USceneComponent* _cherryMeshComp, USceneComponent* _dashFX);
+	void Initialize(USceneComponent* _characterMeshComp, USceneComponent* _cameraComp, USceneComponent* _cherryMeshComp, USceneComponent* _dashFX, class USplineComponent* _Spline, USceneComponent* _ActorToMove);
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetFireTargetPosition(class USceneComponent* charMesh, class USceneComponent* camera);
@@ -60,11 +60,22 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	FVector fireTarget;
+	UPROPERTY(BlueprintReadWrite)
+	FVector fireTargetNormal;
 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* animMontageDoubleJump;
 	UPROPERTY(BlueprintReadWRite, EditAnywhere)
 	TSubclassOf<AActor> BlueprintClass_Wall;
+
+
+	UPROPERTY(BlueprintReadWRite, EditAnywhere)
+	TSubclassOf<AActor> CrosshairClass;
+	AActor* crosshair;
+
+	class USplineComponent* Spline;
+
+	USceneComponent* ActorToMove;
 
 protected:
 	// Called when the game starts or when spawned
@@ -85,12 +96,24 @@ protected:
 	void SprintReleased();
 	void Dash();
 	void WallDash();
+	void MoveCherryAlongSpline();
+	void SetCrossHairTransform();
 
 	bool cherryFired;
 	bool didDash;
 	bool didAirDash;
 	bool didWallDash;
 	bool didWallSlideVelo;
+
+	UPROPERTY(EditAnywhere, Category = "SplineController")
+		float TotalPathTimeController;
+
+	UPROPERTY(EditAnywhere, Category = "SplineController")
+		bool bSplineInLoop;
+
+	bool bCanMoveActor;
+
+	float StartTime;
 
 public:	
 	// Called every frame

@@ -30,3 +30,14 @@ void ADemonAIController::OnPossess(APawn* InPawn)
 		Blackboard->InitializeBlackboard(*BehaviorTree.Get()->BlackboardAsset.Get());
 	}
 }
+
+void ADemonAIController::StopAI()
+{
+	if (IsValid(BehaviorTree.Get()))
+	{
+		//RunBehaviorTree(BehaviorTree.Get());
+		//BehaviorTreeComponent->StartTree(*BehaviorTree.Get());
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, "Dead X(");
+		BehaviorTreeComponent->StopTree();
+	}
+}

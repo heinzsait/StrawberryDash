@@ -4,6 +4,7 @@
 #include "Strawberry.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/SplineComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -14,13 +15,17 @@ AStrawberry::AStrawberry()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
 void AStrawberry::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (CrosshairClass)
+	{
+		crosshair = GetWorld()->SpawnActor<AActor>(CrosshairClass);
+	}
 }
 
 // Called every frame
@@ -30,11 +35,14 @@ void AStrawberry::Tick(float DeltaTime)
 	WallDash();
 	fireTarget = GetFireTargetPosition(characterMeshComp, cameraComp);
 
-	if (GEngine)
+	/*if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Yellow, "target pos = " + fireTarget.ToString());
-		DrawDebugSphere(GetWorld(), fireTarget, 100, 12, FColor::Green, false, 0, 0U, 3);
-	}
+		DrawDebugSphere(GetWorld(), fireTarget, 25, 32, FColor::Red, false, 0, 0U, 3);
+	}*/
+
+	MoveCherryAlongSpline();
+	SetCrossHairTransform();
 }
 
 // Called to bind functionality to input
@@ -65,7 +73,7 @@ void AStrawberry::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction(TEXT("Dash"), IE_Pressed, this, &AStrawberry::Dash);
 }
 
-void AStrawberry::Initialize(USceneComponent* _characterMeshComp, USceneComponent* _cameraComp, USceneComponent* _cherryMeshComp, USceneComponent* _dashFX)
+void AStrawberry::Initialize(USceneComponent* _characterMeshComp, USceneComponent* _cameraComp, USceneComponent* _cherryMeshComp, USceneComponent* _dashFX, class USplineComponent* _Spline, USceneComponent* _ActorToMove)
 {
 	characterMeshComp = _characterMeshComp;
 	cameraComp = _cameraComp;
@@ -75,6 +83,16 @@ void AStrawberry::Initialize(USceneComponent* _characterMeshComp, USceneComponen
 	charMovement = GetCharacterMovement();
 	defaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	defaultGravity = GetCharacterMovement()->GravityScale;
+	Spline = _Spline;
+	ActorToMove = _ActorToMove;
+
+	StartTime = GetWorld()->GetTimeSeconds();
+	bCanMoveActor = true;
+	if (Spline)
+	{
+		Spline->Duration = TotalPathTimeController;
+		Spline->bDrawDebug = true;
+	}
 }
 
 //Movement
@@ -368,10 +386,12 @@ FVector AStrawberry::GetFireTargetPosition(USceneComponent* charMesh, USceneComp
 	{
 		_fireTarget = hitresult.Location;
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("targeting: %s"), *hitresult.GetActor()->GetName()));
+		fireTargetNormal = hitresult.Normal;
 	}
 	else
 	{
 		_fireTarget = hitresult.TraceEnd;
+		fireTargetNormal = hitresult.Normal;
 	}
 
 	return _fireTarget;
@@ -388,16 +408,47 @@ void AStrawberry::FireCherry(USceneComponent* cherry, FVector target)
 
 		cherrySpawned->targetLocation = fireTarget;
 		cherrySpawned->FireTarget();
-		cherrySpawned->strawberry = this;
-
-		/*
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, "firing pos = " + fireTarget.ToString());
-		}
-		*/		
+		cherrySpawned->strawberry = this;	
 	}
 }
 
 
+void AStrawberry::MoveCherryAlongSpline()
+{
+	// Update target
+	if ((ActorToMove != nullptr) && (bCanMoveActor))
+	{
+		float CurrentSplineTime = (GetWorld()->GetTimeSeconds() - StartTime) / TotalPathTimeController;
+		float Distance = Spline->GetSplineLength() * CurrentSplineTime;
 
+		FVector Position = Spline->GetLocationAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::Local) + FVector().UpVector * 200;
+
+		FVector Direction = Spline->GetDirectionAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::Local);
+		FRotator Rotator = FRotationMatrix::MakeFromX(Direction).Rotator();
+
+		//FRotator Rotator = Spline->GetRotationAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::Local);
+
+		ActorToMove->SetRelativeLocationAndRotation(Position, Rotator);
+
+		// Reach the end
+		if (CurrentSplineTime >= 1.0f)
+		{
+			if (bSplineInLoop)
+			{
+				bCanMoveActor = true;
+
+				StartTime = GetWorld()->GetTimeSeconds();
+
+				CurrentSplineTime = (GetWorld()->GetTimeSeconds() - StartTime) / TotalPathTimeController;
+			}
+		}
+	}
+}
+
+void AStrawberry::SetCrossHairTransform()
+{
+	if (crosshair)
+	{
+		crosshair->SetActorLocationAndRotation(fireTarget, fireTargetNormal.Rotation());//SetActorLocation(fireTarget);
+	}
+}

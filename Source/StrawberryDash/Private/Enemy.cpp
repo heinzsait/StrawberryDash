@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
+#include "Core/AI/DemonAIController.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -32,8 +33,7 @@ void AEnemy::BeginPlay()
 		}
 	}
 
-	player = GetWorld()->GetFirstPlayerController()->GetPawn();// UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	//aiController = CastChecked<AAIController>(GetController());
+	player = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 // Called every frame
@@ -41,7 +41,7 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//Follow();
-	//Attack();
+	Attack();
 }
 
 void AEnemy::TakeDamage(float dmg)
@@ -54,6 +54,17 @@ void AEnemy::TakeDamage(float dmg)
 	{
 		isDead = true;
 		deadAnim->SetPropertyValue_InContainer(AnimInst, true);
+		AAIController* aiController = CastChecked<AAIController>(GetController());
+		ADemonAIController* demonAI = Cast<ADemonAIController>(aiController);
+		if (demonAI)
+		{
+			demonAI->StopAI();
+		}
+
+		if (USkeletalMeshComponent* _mesh = FindComponentByClass<USkeletalMeshComponent>())
+		{
+			_mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		}
 		SetLifeSpan(3);
 	}
 }
@@ -66,17 +77,28 @@ void AEnemy::Follow()
 void AEnemy::Attack()
 {
 	if (isDead) return;
-	
-	float dist = FVector::Distance(GetActorLocation(), player->GetActorLocation());
-	if (dist < 250)
+
+	if (player)
 	{
-		punchAnim->SetPropertyValue_InContainer(AnimInst, true);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Attacking player...")));
-	}
-	else
-	{
-		punchAnim->SetPropertyValue_InContainer(AnimInst, false);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Not Attacking player...")));
+		float dist = FVector::Distance(GetActorLocation(), player->GetActorLocation());
+		if (dist < 250)
+		{
+			punchAnim->SetPropertyValue_InContainer(AnimInst, true);
+			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Attacking player...")));
+
+			FVector Direction = player->GetActorLocation() - GetActorLocation();
+			FRotator NewControlRotation = Direction.Rotation();
+
+			NewControlRotation.Yaw = FRotator::ClampAxis(NewControlRotation.Yaw);
+
+			FaceRotation(NewControlRotation, GetWorld()->DeltaRealTimeSeconds);
+
+		}
+		else
+		{
+			punchAnim->SetPropertyValue_InContainer(AnimInst, false);
+			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Red, FString::Printf(TEXT("Not Attacking player...")));
+		}
 	}
 }
 

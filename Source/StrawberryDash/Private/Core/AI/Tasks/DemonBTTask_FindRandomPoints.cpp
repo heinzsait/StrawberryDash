@@ -21,14 +21,13 @@ EBTNodeResult::Type UDemonBTTask_FindRandomPoints::ExecuteTask(UBehaviorTreeComp
 	AIController = OwnerComp.GetAIOwner();
 	AIPawn = AIController->GetPawn();
 
-	if(Origin == FVector().ZeroVector)
-		Origin = AIPawn->GetActorLocation();
+	Origin = AIController->GetBlackboardComponent()->GetValueAsVector(FName("OriginLocation"));//AIPawn->GetActorLocation();
 
 	const UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (IsValid(NavSystem) && NavSystem->GetRandomPointInNavigableRadius(Origin, SearchRadius, Location))
 	{
 		AIController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, Location.Location);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, "Movin to:" + Location.Location.ToString());
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, "Movin to:" + Location.Location.ToString());
 	}
 
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);

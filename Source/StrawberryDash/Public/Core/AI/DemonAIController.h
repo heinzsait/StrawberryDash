@@ -15,6 +15,7 @@ class STRAWBERRYDASH_API ADemonAIController : public AAIController
 	
 public:
 	ADemonAIController();
+	void StopAI();
 
 protected:
 	virtual void BeginPlay() override;
