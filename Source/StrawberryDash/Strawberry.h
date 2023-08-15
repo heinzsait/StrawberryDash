@@ -29,6 +29,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireCherry(USceneComponent* cherry, FVector target);
 
+	float HP;
+	bool isDead;
+	bool canTakeDamage;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> cherryActor;
 
@@ -123,5 +127,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void Landed(const FHitResult& Hit) override;
+
+	void TakeDamage(float dmg);
 
 };

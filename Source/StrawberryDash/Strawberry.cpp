@@ -85,6 +85,9 @@ void AStrawberry::Initialize(USceneComponent* _characterMeshComp, USceneComponen
 	defaultGravity = GetCharacterMovement()->GravityScale;
 	Spline = _Spline;
 	ActorToMove = _ActorToMove;
+	HP = 100;
+	isDead = false;
+	canTakeDamage = true;
 
 	StartTime = GetWorld()->GetTimeSeconds();
 	bCanMoveActor = true;
@@ -114,12 +117,12 @@ void AStrawberry::MoveRight(float Value)
 //Turn/Look
 void AStrawberry::TurnRate(float Value)
 {
-	AddControllerYawInput(Value * baseTurnRate * GetWorld()->GetDeltaSeconds());
+	AddControllerYawInput(Value * baseTurnRate * GetWorld()->GetDeltaSeconds() * 7);
 }
 
 void AStrawberry::LookUpRate(float Value)
 {
-	AddControllerPitchInput(Value * baseLookUpRate * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(Value * baseLookUpRate * GetWorld()->GetDeltaSeconds() * 7);
 }
 
 void AStrawberry::Turn(float Value)
@@ -385,7 +388,7 @@ FVector AStrawberry::GetFireTargetPosition(USceneComponent* charMesh, USceneComp
 	if (ifHit)
 	{
 		_fireTarget = hitresult.Location;
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("targeting: %s"), *hitresult.GetActor()->GetName()));
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0, FColor::Green, FString::Printf(TEXT("targeting: %s"), *hitresult.GetActor()->GetName()));
 		fireTargetNormal = hitresult.Normal;
 	}
 	else
@@ -449,6 +452,32 @@ void AStrawberry::SetCrossHairTransform()
 {
 	if (crosshair)
 	{
-		crosshair->SetActorLocationAndRotation(fireTarget, fireTargetNormal.Rotation());//SetActorLocation(fireTarget);
+		crosshair->SetActorLocationAndRotation(fireTarget, fireTargetNormal.Rotation());
 	}
+}
+
+void AStrawberry::TakeDamage(float dmg)
+{
+	if (isDead) return;
+	if (!canTakeDamage) return;
+
+	HP -= dmg;
+	canTakeDamage = false;
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, FString::Printf(TEXT("Health = %f"), HP));
+	if (HP <= 0)
+	{
+		isDead = true;
+		
+		Destroy();
+		crosshair->Destroy();
+	}
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]
+		{
+			canTakeDamage = true;
+		});
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1, false);
 }

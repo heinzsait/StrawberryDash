@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
 #include "Core/AI/DemonAIController.h"
+#include "StrawberryDash/Strawberry.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -92,6 +93,12 @@ void AEnemy::Attack()
 			NewControlRotation.Yaw = FRotator::ClampAxis(NewControlRotation.Yaw);
 
 			FaceRotation(NewControlRotation, GetWorld()->DeltaRealTimeSeconds);
+
+			AStrawberry* strawberry = Cast<AStrawberry>(player);
+			if (strawberry)
+			{
+				strawberry->TakeDamage(20);
+			}
 
 		}
 		else
