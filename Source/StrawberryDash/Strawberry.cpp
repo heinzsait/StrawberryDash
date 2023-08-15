@@ -32,6 +32,7 @@ void AStrawberry::BeginPlay()
 void AStrawberry::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (isDead) return;
 	WallDash();
 	fireTarget = GetFireTargetPosition(characterMeshComp, cameraComp);
 
@@ -101,6 +102,7 @@ void AStrawberry::Initialize(USceneComponent* _characterMeshComp, USceneComponen
 //Movement
 void AStrawberry::MoveForward(float Value)
 {
+	if (isDead) return;
 	if (isMovementLocked) return;
 	FRotator rot = FRotator(0, GetControlRotation().Yaw, 0);
 	AddMovementInput(UKismetMathLibrary::GetForwardVector(rot), Value);
@@ -108,6 +110,7 @@ void AStrawberry::MoveForward(float Value)
 
 void AStrawberry::MoveRight(float Value)
 {
+	if (isDead) return;
 	if (isMovementLocked) return;
 	FRotator rot = FRotator(0, GetControlRotation().Yaw, 0);
 	AddMovementInput(UKismetMathLibrary::GetRightVector(rot), Value);
@@ -117,26 +120,31 @@ void AStrawberry::MoveRight(float Value)
 //Turn/Look
 void AStrawberry::TurnRate(float Value)
 {
+	if (isDead) return;
 	AddControllerYawInput(Value * baseTurnRate * GetWorld()->GetDeltaSeconds() * 7);
 }
 
 void AStrawberry::LookUpRate(float Value)
 {
+	if (isDead) return;
 	AddControllerPitchInput(Value * baseLookUpRate * GetWorld()->GetDeltaSeconds() * 7);
 }
 
 void AStrawberry::Turn(float Value)
 {
+	if (isDead) return;
 	AddControllerYawInput(Value * baseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void AStrawberry::LookUp(float Value)
 {
+	if (isDead) return;
 	AddControllerPitchInput(Value * baseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
 void AStrawberry::JumpPressed()
 {	
+	if (isDead) return;
 	if (!inWallSlide)
 	{
 		if (charMovement != NULL)
@@ -159,6 +167,7 @@ void AStrawberry::JumpPressed()
 
 void AStrawberry::JumpReleased()
 {
+	if (isDead) return;
 	StopJumping();
 	canWallDash = false;
 }
@@ -175,11 +184,13 @@ void AStrawberry::Landed(const FHitResult& Hit)
 
 void AStrawberry::Fire()
 {
+	if (isDead) return;
 	FireCherry(cherryMeshComp, fireTarget);
 }
 
 void AStrawberry::FireReleased()
 {
+	if (isDead) return;
 	cherryFired = false;
 }
 
@@ -205,6 +216,7 @@ void AStrawberry::SprintReleased()
 
 void AStrawberry::Dash()
 {
+	if (isDead) return;
 	if (!charMovement->IsFalling())
 	{
 		if (!didDash)
@@ -262,6 +274,7 @@ void AStrawberry::Dash()
 
 void AStrawberry::WallDash()
 {
+	if (isDead) return;
 	if (charMovement->IsFalling())
 	{
 		FHitResult result;
@@ -463,12 +476,12 @@ void AStrawberry::TakeDamage(float dmg)
 
 	HP -= dmg;
 	canTakeDamage = false;
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, FString::Printf(TEXT("Health = %f"), HP));
+	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, FString::Printf(TEXT("Health = %f"), HP));
 	if (HP <= 0)
 	{
 		isDead = true;
 		
-		Destroy();
+		//Destroy();
 		crosshair->Destroy();
 	}
 

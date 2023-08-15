@@ -97,7 +97,7 @@ void AEnemy::Attack()
 			AStrawberry* strawberry = Cast<AStrawberry>(player);
 			if (strawberry)
 			{
-				strawberry->TakeDamage(20);
+				strawberry->TakeDamage(10);
 			}
 
 		}

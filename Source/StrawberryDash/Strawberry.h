@@ -29,8 +29,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireCherry(USceneComponent* cherry, FVector target);
 
+	UPROPERTY(BlueprintReadWrite)
 	float HP;
+
+	UPROPERTY(BlueprintReadWrite)
 	bool isDead;
+
 	bool canTakeDamage;
 
 	UPROPERTY(EditAnywhere)
