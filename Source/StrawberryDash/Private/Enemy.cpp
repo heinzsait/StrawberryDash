@@ -28,9 +28,9 @@ void AEnemy::BeginPlay()
 
 		if (AnimInst)
 		{
-			gotHit = FindField<FBoolProperty>(AnimInst->GetClass(), TEXT("GotHit"));
-			deadAnim = FindField<FBoolProperty>(AnimInst->GetClass(), TEXT("Dead"));
-			punchAnim = FindField<FBoolProperty>(AnimInst->GetClass(), TEXT("Punch"));
+			gotHit = FindFProperty<FBoolProperty>(AnimInst->GetClass(), TEXT("GotHit"));
+			deadAnim = FindFProperty<FBoolProperty>(AnimInst->GetClass(), TEXT("Dead"));
+			punchAnim = FindFProperty<FBoolProperty>(AnimInst->GetClass(), TEXT("Punch"));
 		}
 	}
 
