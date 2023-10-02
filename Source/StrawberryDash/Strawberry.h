@@ -4,12 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
-#include "Cherry.h"
 #include "Strawberry.generated.h"
+
+class UCharacterMovementComponent;
 
 UCLASS()
 class STRAWBERRYDASH_API AStrawberry : public ACharacter

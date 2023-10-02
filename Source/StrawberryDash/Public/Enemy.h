@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Math/Vector.h"
-#include "AIController.h"
 #include "Enemy.generated.h"
 
 

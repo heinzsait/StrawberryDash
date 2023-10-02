@@ -4,14 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-#include "Math/UnrealMathUtility.h"
-#include "Math/Vector.h"
-#include "Enemy.h"
-#include "Components/BoxComponent.h"
 #include "Cherry.generated.h"
+
 
 UCLASS()
 class STRAWBERRYDASH_API ACherry : public AActor
